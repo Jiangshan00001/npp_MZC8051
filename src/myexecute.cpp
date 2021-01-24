@@ -26,6 +26,9 @@ int myexecute(std::string cmd_utf8, std::string param_utf8, int wait_for_finish)
         WaitForSingleObject(sei.hProcess, INFINITE);
     }
 
+	DWORD exitCode;
+	GetExitCodeProcess(sei.hProcess, &exitCode);
+
     CloseHandle(sei.hProcess);
-	return 0;
+	return exitCode;
 }

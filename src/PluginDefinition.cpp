@@ -28,7 +28,7 @@
 #include <ShellAPI.h>
 #include "DockingFeature/GoToLineDlg.h"
 #include "myexecute.h"
-#include "osdialog.h"
+//#include "osdialog.h"
 
 const TCHAR sectionName[] = TEXT("general");
 const TCHAR keyName[] = TEXT("check_update");
@@ -127,13 +127,14 @@ void commandMenuInit()
 	setCommand(6, TEXT("---"), NULL, NULL, false);
 	setCommand(7, TEXT("打开当前项目Makefile"), open_curr_project, NULL, false);
 	setCommand(8, TEXT("打开当前项目main.c"), open_curr_main_c, NULL, false);
-	setCommand(9, TEXT("查看编译信息"), open_log_information, NULL, false);
+	setCommand(9, TEXT("查看编译记录"), open_log_information, NULL, false);
 	setCommand(10, TEXT("---"), NULL, NULL, false);
 	
 
 
 
 	setCommand(11, TEXT("关于"), set_about, NULL, false);
+	setCommand(11, TEXT("使用说明"), open_how_to_use, NULL, false);
 	
 
 	//setCommand(12, TEXT("Dockable Dialog Demo"), DockableDlgDemo, NULL, false);
@@ -167,6 +168,16 @@ std::string get_exe_file_full_name_utf8()
 	return exe_utf8;
 }
 
+std::string get_exe_file_dir_utf8()
+{
+	std::wstring exe_file_name;
+	exe_file_name = g_MODULE_FILE_PATH;
+	std::string exe_utf8 = UnicodeToUtf8(exe_file_name);
+	exe_utf8 = replace(exe_utf8, "MZC8051.dll", "");
+	exe_utf8 = replace(exe_utf8, "mzc8051.dll", "");
+	return exe_utf8;
+}
+
 #include <iostream>
 #include <fstream>
 #include<cstdio>
@@ -185,7 +196,7 @@ void new_project()
 
 	if (file_name != NULL)
 	{
-		g_curr_project_path_utf8 = file_name;
+
 
 		std::string exe_cmd_utf8 = "\"" + exe_file + "\" " + " -x lmake -d -m create " + "   -i \"" + path1 + "\"" + " -o \"" + proj1 + "\" \n";
 		std::wstring exe_cmd_uni = Utf8ToUnicode(exe_cmd_utf8);
@@ -193,7 +204,7 @@ void new_project()
 		//Sleep(1500);
 		myexecute(exe_file, exe_cmd_utf8);
 
-		
+		g_curr_project_path_utf8 = file_name;
 #if 1
 		std::string make_file = path_add(file_name, "Makefile");
 		std::string make_main = path_add(file_name, "main.c");
@@ -254,7 +265,18 @@ void make_project()
 	std::wstring exe_cmd_uni = Utf8ToUnicode(exe_cmd_utf8);
 	//ShellExecute(NULL, TEXT("open"), exe_file_uni.c_str(), exe_cmd_uni.c_str(), NULL, SW_NORMAL);
 	//Sleep(1500);
-	myexecute(exe_file, exe_cmd_utf8);
+	int exit_code = myexecute(exe_file, exe_cmd_utf8);
+
+	if (exit_code == 0)
+	{
+		::MessageBoxA(NULL, "OK", "compile OK", MB_OK | MB_ICONINFORMATION);
+	}
+	else
+	{
+		::MessageBoxA(NULL,  "COMPILE ERROR. see more infomation in log", "ERROR", MB_OK | MB_ICONERROR);
+	}
+
+
 }
 
 
@@ -269,13 +291,11 @@ void make_clean_project()
 
 	//ShellExecute(NULL, TEXT("open"), exe_file_uni.c_str(), exe_cmd_uni.c_str(), NULL, SW_NORMAL);
 	//Sleep(1500);
-
 }
 
 void set_about()
 {
 	MessageBox(NULL, TEXT("MZC8051 做中国专业的8051单片机C语言编译器. V0.01"), TEXT("miliuz"), MB_ICONINFORMATION);
-
 }
 void open_log_information()
 {
@@ -288,6 +308,13 @@ void open_log_information()
 void open_curr_main_c()
 {
 	std::string make_file_log = path_add(g_curr_project_path_utf8, "main.c");
+
+	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)(utf8_to_wchar(make_file_log.c_str())));
+}
+void open_how_to_use()
+{
+	std::string file_dir =  get_exe_file_dir_utf8();
+	std::string make_file_log = path_add(file_dir, "how_to_use.txt");
 
 	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)(utf8_to_wchar(make_file_log.c_str())));
 }
@@ -330,7 +357,7 @@ void DockableDlgDemo()
 		_goToLine.create(&data);
 
 		// define the default docking behaviour
-		data.uMask = DWS_DF_CONT_RIGHT;
+		data.uMask = DWS_DF_CONT_BOTTOM;
 
 		data.pszModuleName = _goToLine.getPluginFileName();
 

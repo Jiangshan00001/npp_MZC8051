@@ -36,7 +36,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("MZC8051");
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 12;
+const int nbFunc = 13;
 
 
 //
@@ -93,6 +93,8 @@ void open_new_project();
 void open_curr_project();
 void open_curr_main_c();
 void open_log_information();
+void open_how_to_use();
+
 
 void new_file();
 void add_file();
